@@ -55,6 +55,6 @@ CORES=24 snakemake -s workflow/Snakefile --configfile config/config.yaml --use-c
 All config files are stored in the folder `config/`
 
 Note(s): 
-- Edit the paths to `data_dir`, `results_dir`, `env_dir` and the *databases*
+- Edit the paths to `data_dir`, `results_dir`, `env_dir` and the `*databases*`
 - Provide a `kraken2_sample_list`
 
