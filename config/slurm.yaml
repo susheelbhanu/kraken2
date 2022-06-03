@@ -7,24 +7,6 @@ __default__:
   explicit: ""
   job-name: "busi_madness.{rule}"
 
-# preprocessing
-imp3_input_mg:
-  time: "00-00:30:00"
-  partition: "batch"
-  qos: "normal"
-  nodes: 1
-  n: 1
-  explicit: ""
-
-compression:
-  time: "00-00:30:00"
-
-fastqc:
-  time: "00-00:15:00"
-
-multiqc_fastqc:
-  time: "00-00:10:00"
-
 # taxonomy
 kraken2:
   time: "00-01:00:00"
