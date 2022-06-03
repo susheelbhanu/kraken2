@@ -5,6 +5,12 @@
 
 # Setup
 
+## Databases
+- Two different `Kraken2` databases can be used and can be downloaded from the following sources:
+1. `kraken2`, i.e. *maxikraken2_1903_140GB (March 2019, 140GB)* :- https://lomanlab.github.io/mockcommunity/mc_databases.html
+2.  struo2_kraken2 :- http://ftp.tue.mpg.de/ebio/projects/struo2/GTDB_release202/kraken2/ 
+
+
 ## Conda
 
 [Conda user guide](https://docs.conda.io/projects/conda/en/latest/user-guide/index.html)
