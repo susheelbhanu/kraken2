@@ -1,0 +1,21 @@
+############################################################
+# INPUT
+# Directory where the data files are
+data_dir: "/work/projects/nomis/backup/NovaSeq_20210409_NOV691_o24408_DataDelivery/renamed_files"
+
+# Directory for the results
+results_dir: "/scratch/users/sbusi/kraken2/results"
+
+# Directory where the conda environments are
+env_dir: "/scratch/users/sbusi/kraken2/envs"
+
+############################################################
+# TOOLS 
+kraken2:
+  db: "/mnt/isilon/projects/ecosystem_biology/databases/kraken2/maxikraken2_1903_140GB/"
+  threads: 28
+
+# Struo2 database from the Ruth Ley lab
+struo2_kraken2:
+  db: "/work/projects/nomis/backup/databases/struo2_kraken2/"
+  threads: 28

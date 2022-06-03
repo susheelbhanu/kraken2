@@ -1,0 +1,16 @@
+**/.snakemake/
+**/__pycache__/
+slurm-*.out
+*.tmp
+*.log
+*.done
+*.installed
+**/backup
+data_*
+._*
+._config*
+.DS_Store
+._*.smk
+._*.yaml
+**/results
+results/*

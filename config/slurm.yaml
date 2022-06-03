@@ -1,0 +1,36 @@
+__default__:
+  time: "0-01:00:00"
+  partition: "batch"
+  qos: "normal"
+  nodes: 1
+  n: 1
+  explicit: ""
+  job-name: "busi_madness.{rule}"
+
+# preprocessing
+imp3_input_mg:
+  time: "00-00:30:00"
+  partition: "batch"
+  qos: "normal"
+  nodes: 1
+  n: 1
+  explicit: ""
+
+compression:
+  time: "00-00:30:00"
+
+fastqc:
+  time: "00-00:15:00"
+
+multiqc_fastqc:
+  time: "00-00:10:00"
+
+# taxonomy
+kraken2:
+  time: "00-01:00:00"
+  partition: "gpu"
+
+struo2_kraken2:
+  time: "00-01:00:00"
+  partition: "gpu"
+  
