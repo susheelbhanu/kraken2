@@ -1,4 +1,4 @@
-# miscellaneous
+# Kraken2
 
-# Miscellaneous
-- This repo consists of random and miscellaneous `snakefiles` developed for various purposes# kraken2
+## About
+- Repository containing `(Snakemake)[https://snakemake.readthedocs.io/en/stable/]` workflow for running `(Kraken2)[https://ccb.jhu.edu/software/kraken/]` analyses
