@@ -20,7 +20,7 @@ rule all:
     input:
         expand(os.path.join(RESULTS_DIR, "{sid}_kraken.report"), sid=SAMPLES), 
         expand(os.path.join(RESULTS_DIR, "struo2_{sid}_kraken.report"), sid=SAMPLES),
-        expand(os.path.join(RESULTS_DIR, "phyloseq.kraken_{type}.tsv"), type=["abundance", "taxonomy"])
+        expand(os.path.join(RESULTS_DIR, "phyloseq.{db}kraken_{type}.tsv"), db=["", "struo2_"], type=["abundance", "taxonomy"])
 
 ############################################
 localrules: phyloseq_input_kraken2
@@ -30,8 +30,10 @@ localrules: phyloseq_input_kraken2
 # Taxonomic classification using KRAKEN2
 rule kraken2:
     input:
-        os.path.join(DATA_DIR, "{sid}_R1.fastq.gz"),
-        os.path.join(DATA_DIR, "{sid}_R2.fastq.gz")
+#        os.path.join(DATA_DIR, "{sid}_R1.fastq.gz"),
+#        os.path.join(DATA_DIR, "{sid}_R2.fastq.gz")
+        os.path.join(DATA_DIR, "{sid}_R1.fastq"),
+        os.path.join(DATA_DIR, "{sid}_R2.fastq")
     output:
         report=os.path.join(RESULTS_DIR, "{sid}_kraken.report"),
         summary=os.path.join(RESULTS_DIR, "{sid}_kraken.out")
@@ -83,6 +85,29 @@ rule phyloseq_input_kraken2_sample:
         # add unclassified
         "echo -e \"\\n0\\t$(grep -P 'U\\t0\\t\s*unclassified$' {input} | cut -f3)\\tk__; p__; c__; o__; f__; g__; s__\" >> {output.tsv}"
 
+# Convert Struo2 kraken output to phyloseq input
+rule phyloseq_input_struo2_kraken2:
+    input:
+        rules.struo2_kraken2.output.report
+    output:
+        biom=temp(os.path.join(RESULTS_DIR, "{sid}.struo2_report.biom")),
+        tsv=os.path.join(RESULTS_DIR, "{sid}.struo2_report.tsv")
+    wildcard_constraints:
+        sid="|".join(SAMPLES),
+    conda:
+        os.path.join(ENV_DIR, "biom.yaml")
+    message:
+        "Phyloseq input for Kraken2: {wildcards.sid}"
+    shell:
+        # kraken-report -> biom -> TSV
+        "kraken-biom {input} -o {output.biom} --fmt hdf5 && "
+        "biom convert -i {output.biom} -o {output.tsv} --to-tsv --header-key taxonomy && "
+        # add unclassified
+        "echo -e \"\\n0\\t$(grep -P 'U\\t0\\t\s*unclassified$' {input} | cut -f3)\\tk__; p__; c__; o__; f__; g__; s__\" >> {output.tsv}"        
+
+
+############
+# Merging all samples together into one table
 rule phyloseq_input_kraken2:
     input:
         expand(os.path.join(RESULTS_DIR, "{sid}.report.tsv"), sid=SAMPLES)
@@ -131,3 +156,51 @@ rule phyloseq_input_kraken2:
         # save
         df_a.to_csv(output.abund, sep="\t", header=True, index=True, index_label="taxonID", na_rep=0)
         df_t.to_csv(output.tax, sep="\t", header=True, index=True, index_label="taxonID")
+
+
+# Phyloseq input from Struo2 report files
+rule phyloseq_input_struo2_kraken2_sample:
+    input:
+        expand(os.path.join(RESULTS_DIR, "{sid}.struo2_report.tsv"), sid=SAMPLES)
+    output:
+        abund=os.path.join(RESULTS_DIR, "phyloseq.struo2_kraken_abundance.tsv"),
+        tax=os.path.join(RESULTS_DIR, "phyloseq.struo2_kraken_taxonomy.tsv")
+    message:
+        "Phyloseq input for Struo2_Kraken2"
+    run:
+        import os
+        import re
+        import csv
+        import pandas
+        from collections import OrderedDict
+        
+        # Required functions
+        from scripts.utils import read_kraken2_report2biom2tsv, lineage2dict, RANKS
+
+        dfs   = None
+        tax_d = dict()
+        for ifile_path in input:
+            sid = os.path.basename(ifile_path).split(".")[0]
+            df  = read_kraken2_report2biom2tsv(ifile_path)
+            df  = df.rename(columns={"count": sid})
+            df.set_index("taxid", drop=True, inplace=True, verify_integrity=True)
+            if dfs is None:
+                dfs = df[[sid]].copy()
+                tax_d.update(df["lineage"].to_dict())
+            else:
+                dfs = dfs.merge(
+                    right=df[[sid]],
+                    how="outer",
+                    left_index=True, right_index=True
+                )
+                tax_d.update(df["lineage"].to_dict())
+        # abundance
+        df_a = dfs.copy()
+        # taxonomy
+        df_t = pandas.DataFrame(index=tax_d.keys(), columns=RANKS.values())
+        for t_id, t_lin in tax_d.items():
+            for t_r, t_n in lineage2dict(t_lin).items():
+                df_t.loc[t_id, RANKS[t_r]] = t_n
+        # save
+        df_a.to_csv(output.abund, sep="\t", header=True, index=True, index_label="taxonID", na_rep=0)
+        df_t.to_csv(output.tax, sep="\t", header=True, index=True, index_label="taxonID")        
